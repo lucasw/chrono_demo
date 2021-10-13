@@ -1,0 +1,63 @@
+name: Noetic ROS CI
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os_distro: [[ubuntu-20.04, noetic]]
+    runs-on: ${{ matrix.os_distro[0] }}
+    env:
+      ROS_CI_DESKTOP: "`lsb_release -cs`"  # e.g. [trusty|xenial|...]
+      ACCEPT_EULA: true
+    steps:
+
+      - name: git clone git@github.com:lucasw/chrono_demo
+        uses: actions/checkout@v2
+        with:
+          path: chrono_demo
+
+      - name: Setup built chrono
+        run: |
+          # This needs to be the same directory as the library was built in, because paths get baked in
+          cd $HOME
+          pwd
+          wget --no-verbose https://github.com/lucasw/chrono/releases/download/6.x.y_github_action/chrono_build_0.zip
+          unzip chrono_build_0.zip
+          tar xf install.tgz
+          ls -l other/install
+          ls -l $HOME/other/install/lib/cmake
+
+      - name: install cuda for chrono
+        run: |
+            sudo apt-get install -y nvidia-cuda-toolkit
+            sudo apt-get install -y nvidia-cuda-dev
+
+      - name: install chrono dependencies
+        run: |
+            sudo apt-get update -qq
+            sudo apt-get install -y dpkg
+            sudo apt-get install -y freeglut3-dev
+            sudo apt-get install -y g++-8
+            sudo apt-get install -y gcc-8
+            sudo apt-get install -y libboost-dev
+            sudo apt-get install -y libeigen3-dev
+            sudo apt-get install -y libglew-dev
+            sudo apt-get install -y libglfw3-dev
+            sudo apt-get install -y libglm-dev
+            sudo apt-get install -y libhdf5-dev
+            sudo apt-get install -y libirrlicht-dev
+            sudo apt-get install -y libopenmpi-dev
+            sudo apt-get install -y libthrust-dev
+            sudo apt-get install -y libxxf86vm-dev
+            sudo apt-get install -y swig
+
+      - name: chrono_demo build
+        run: |
+            mkdir build
+            cd build
+            export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$HOME/other/install/lib/cmake
+            cmake ../chrono_demo
+            make
+            ./chrono_demo
