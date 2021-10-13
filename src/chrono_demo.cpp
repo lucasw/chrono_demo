@@ -36,10 +36,12 @@ int main(int argc, char* argv[])
       std::cout << "[" << cur_time << "] " << pos << "\n";
     }
   }
+  std::cout << std::endl;
 
   // TODO(lucasw) how to shut down the system without getting a segfault?
   ch.RemoveBody(body);
   ch.RemoveBody(plane);
+
 
   return 0;
 }
